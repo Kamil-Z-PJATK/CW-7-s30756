@@ -1,3 +1,4 @@
+using APBD_CW_3.Exceptions;
 using APBD_CW_3.Models.DTOs;
 using Microsoft.Data.SqlClient;
 
@@ -54,10 +55,62 @@ public class DbService(IConfiguration config): IDbService
         return trips;
     }
 
-    public async Task<IEnumerable<Client_TripGetDTO>> GetTripsForClient(int klientId)
+    public async Task<IEnumerable<TripGetDTO>> GetTripsForClient(int klientId)
     {
+        List<TripGetDTO> trips = new List<TripGetDTO>();
+      await using var connection = new SqlConnection(_connectionString);
+      string sql = "SELECT IdClient from Client c ";
+      var command = new SqlCommand(sql, connection);
+      await connection.OpenAsync();
+      var reader = await command.ExecuteReaderAsync();
+      bool czyIstnieje = false;
+
+      while (await reader.ReadAsync())
+      {
+          if (klientId == reader.GetInt32(0))
+          {
+              czyIstnieje = true;
+          }
+      }
       
-        throw new NotImplementedException();
+      
+      if (!czyIstnieje)
+      {
+          throw new NotFoundException("Client not found");
+      }
+      reader.Close();
+      command.Dispose();
+      sql = "Select count(*) from Trip t ";
+      command.CommandText = sql;
+      var reader2 = await command.ExecuteReaderAsync();
+      await reader2.ReadAsync();
+      if (reader2.GetInt32(0) == 0)
+      {
+          throw new NotFoundException("No trips found");
+      }
+      
+      reader2.Close();
+      command.Dispose();
+      reader2.Dispose();
+      sql = "SELECT t.IdTrip, t.Name ,t.Description ,t.DateFrom ,t.DateTo ,t.MaxPeople  FROM Client_Trip ct join Trip t on ct.Trip_IdTrip =t.IdTrip where ct.Client_IdClient =@klientId";
+      command.CommandText = sql;
+      command.Parameters.AddWithValue("@klientId", klientId);
+      var reader3 = await command.ExecuteReaderAsync();
+      while (await reader3.ReadAsync())
+      {
+          trips.Add(new TripGetDTO
+          {
+              IdTrip = reader3.GetInt32(0),
+              Name = reader3.GetString(1),
+              Description = reader3.GetString(2),
+              DateFrom = reader3.GetDateTime(3),
+              DateTo = reader3.GetDateTime(4),
+              MaxPeople = reader3.GetInt32(5)
+          });
+      }
+      
+      return trips;
+        
 
     }
 

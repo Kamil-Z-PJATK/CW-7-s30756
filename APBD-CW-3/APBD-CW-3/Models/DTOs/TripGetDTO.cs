@@ -8,7 +8,7 @@ public class TripGetDTO
     [Length(1,120)]
     public string Name { get; set; }
     [Length(1,220)]
-    public int Description { get; set; }
+    public string Description { get; set; }
     public DateTime DateFrom { get; set; }
     public DateTime DateTo { get; set; }
     public int MaxPeople { get; set; }

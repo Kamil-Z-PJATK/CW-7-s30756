@@ -1,17 +1,64 @@
 using APBD_CW_3.Models.DTOs;
+using Microsoft.Data.SqlClient;
+
 
 namespace APBD_CW_3.Services;
 
-public class DbService: IDbService
+public class DbService(IConfiguration config): IDbService
 {
-    public Task<IEnumerable<Country_TripGetDTO>> GetTripsAndCountrys(int id)
+    private readonly string? _connectionString=config.GetConnectionString("Default");
+    public async Task<IEnumerable<Country_TripGetDTO>> GetTripsAndCountrys()
     {
-        throw new NotImplementedException();
+        await using var connection = new SqlConnection(_connectionString);
+        string sql="Select * From Trip";
+        string sql2 = "SELECT ct.Trip_IdTrip, c.IdCountry, c.Name  FROM Country_Trip ct join Country c on ct.Country_IdCountry = c.IdCountry ";
+        var command = new SqlCommand(sql, connection);
+       
+        await connection.OpenAsync();
+        var reader = await command.ExecuteReaderAsync();
+        var trips = new List<Country_TripGetDTO>();
+        while (await reader.ReadAsync())
+        {
+            Country_TripGetDTO trip = new Country_TripGetDTO();
+            trip.Trip = new TripGetDTO
+            {
+                IdTrip = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Description = reader.GetString(2),
+                DateFrom=reader.GetDateTime(3),
+                DateTo = reader.GetDateTime(4),
+                MaxPeople = reader.GetInt32(5)
+            };
+            trip.Countrys = new List<CountryGetDTO>();
+            
+            trips.Add(trip);
+        }
+        
+        command.CommandText = sql2;
+        reader.Close();
+        var reader2 = await command.ExecuteReaderAsync();
+        while (await reader2.ReadAsync())
+        {
+            for (int i = 0; i < trips.Count; i++)
+            {
+                if (trips[i].Trip.IdTrip == reader2.GetInt32(0))
+                {
+                    trips[i].Countrys.Add(new CountryGetDTO
+                    {
+                        IdCountry = reader2.GetInt32(1),
+                        Name = reader2.GetString(2),
+                    });
+                }
+            }
+        }
+        return trips;
     }
 
-    public Task<IEnumerable<Client_TripGetDTO>> GetTripsForClient(int klientId)
+    public async Task<IEnumerable<Client_TripGetDTO>> GetTripsForClient(int klientId)
     {
+      
         throw new NotImplementedException();
+
     }
 
     public Task<ClientCreateDTO> PostClient(string firstName, string lastName, string phoneNumber, string email, string pesel)
@@ -28,4 +75,31 @@ public class DbService: IDbService
     {
         throw new NotImplementedException();
     }
+
+    public async Task<IEnumerable<ClientGetDTO>> GetClients()
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        string sql="SELECT * FROM Client";
+        var command = new SqlCommand(sql, connection);
+        await connection.OpenAsync();
+        await using var reader = await command.ExecuteReaderAsync();
+        
+        var result = new List<ClientGetDTO>();
+        while (await reader.ReadAsync())
+        {
+            result.Add(new ClientGetDTO()
+            {
+                IdClient = reader.GetInt32(0),
+                FirstName = reader.GetString(1),
+                LastName = reader.GetString(2),
+                Email = reader.GetString(3),
+                Telephone = reader.GetString(4),
+                Pesel = reader.GetString(5), 
+            });
+        }
+        
+      return result;
+    }
+    
+    
 }

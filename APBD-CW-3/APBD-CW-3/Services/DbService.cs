@@ -1,4 +1,5 @@
 using APBD_CW_3.Exceptions;
+using APBD_CW_3.Models;
 using APBD_CW_3.Models.DTOs;
 using Microsoft.Data.SqlClient;
 
@@ -114,9 +115,29 @@ public class DbService(IConfiguration config): IDbService
 
     }
 
-    public Task<ClientCreateDTO> PostClient(string firstName, string lastName, string phoneNumber, string email, string pesel)
+    public async Task<Client> PostClient(ClientCreateDTO client)
     {
-        throw new NotImplementedException();
+        await using var connection = new SqlConnection(_connectionString);
+        string sql = "INSERT INTO Client VALUES ((SELECT Count(*)+1 FROM Client),@FirstName, @LastName, @Email, @Telephone, @Pesel)";
+        var command = new SqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@FirstName", client.FirstName);
+        command.Parameters.AddWithValue("@LastName", client.LastName);
+        command.Parameters.AddWithValue("@Email", client.Email);
+        command.Parameters.AddWithValue("@Telephone", client.Telephone);
+        command.Parameters.AddWithValue("@Pesel", client.Pesel);
+        await connection.OpenAsync();
+        int id = Convert.ToInt32(await command.ExecuteScalarAsync());
+        
+        return new Client
+        {
+            IdClient = id,
+            FirstName = client.FirstName,
+            LastName = client.LastName,
+            Email = client.Email,
+            Telephone = client.Telephone,
+            Pesel = client.Pesel,
+        };
+        
     }
 
     public Task RegisterClientToTrip(int klientId, int tripId)

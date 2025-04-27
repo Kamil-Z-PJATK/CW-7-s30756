@@ -1,4 +1,5 @@
 ﻿using APBD_CW_3.Exceptions;
+using APBD_CW_3.Models.DTOs;
 using APBD_CW_3.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,13 @@ public class ClientsController(IDbService dbService):ControllerBase
             return NotFound(e.Message);
         }
         
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> PostClient([FromBody] ClientCreateDTO client)
+    {
+        var cl=await dbService.PostClient(client);
+        return Ok("Created new client "+cl.IdClient+" "+client);
     }
     
 }

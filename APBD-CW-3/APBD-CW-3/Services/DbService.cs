@@ -61,7 +61,7 @@ public class DbService(IConfiguration config): IDbService
         List<TripGetDTO> trips = new List<TripGetDTO>();
       await using var connection = new SqlConnection(_connectionString);
       string sql = "SELECT IdClient from Client c ";
-      var command = new SqlCommand(sql, connection);
+      await using var command = new SqlCommand(sql, connection);
       await connection.OpenAsync();
       var reader = await command.ExecuteReaderAsync();
       bool czyIstnieje = false;
@@ -119,7 +119,7 @@ public class DbService(IConfiguration config): IDbService
     {
         await using var connection = new SqlConnection(_connectionString);
         string sql = "INSERT INTO Client VALUES ((SELECT Count(*)+1 FROM Client),@FirstName, @LastName, @Email, @Telephone, @Pesel)";
-        var command = new SqlCommand(sql, connection);
+       await using var command = new SqlCommand(sql, connection);
         command.Parameters.AddWithValue("@FirstName", client.FirstName);
         command.Parameters.AddWithValue("@LastName", client.LastName);
         command.Parameters.AddWithValue("@Email", client.Email);
@@ -140,9 +140,54 @@ public class DbService(IConfiguration config): IDbService
         
     }
 
-    public Task RegisterClientToTrip(int klientId, int tripId)
+    public async Task RegisterClientToTrip(int klientId, int tripId)
     {
-        throw new NotImplementedException();
+        await using (var connection = new SqlConnection(_connectionString))
+        {
+            
+
+            
+            
+            string sql = "SELECT COUNT(*)  from Trip t WHERE t.IdTrip =@tripId";
+            await using var command = new SqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@tripID", tripId);
+            await connection.OpenAsync();
+            int trId = Convert.ToInt32(await command.ExecuteScalarAsync());
+
+            if (trId == 0)
+            {
+                throw new NotFoundException("Trip not found");
+            }
+            
+           sql = "SELECT count(*) from Client c WHERE c.IdClient =@klientId ";
+           command.CommandText = sql;
+           command.Parameters.AddWithValue("@klientId", klientId);
+           int clId = Convert.ToInt32(await command.ExecuteScalarAsync());
+           if (clId == 0)
+           {
+               throw new NotFoundException("Client not found");
+           }
+           
+           
+           
+            command.Dispose();
+         
+            
+            sql = "INSERT INTO Client_Trip VALUES (@clientId, @tripId, 13, 15)";
+            await using var command2 = new SqlCommand(sql, connection);
+            command2.Parameters.AddWithValue("@clientId", klientId);
+            command2.Parameters.AddWithValue("@tripId", tripId);
+            var numOfRows = await command2.ExecuteNonQueryAsync();
+
+            if (numOfRows == 0)
+            {
+                throw new NotFoundException("Client or Trip not found");
+            }
+            
+            
+            
+
+        }
     }
 
     public Task DelieteClientsRegistration(int klientId, int tripId)

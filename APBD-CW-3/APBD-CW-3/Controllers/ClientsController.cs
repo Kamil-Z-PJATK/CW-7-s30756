@@ -33,5 +33,19 @@ public class ClientsController(IDbService dbService):ControllerBase
         var cl=await dbService.PostClient(client);
         return Ok("Created new client "+cl.IdClient+" "+client);
     }
+
+    [HttpPut("{clientId}/trips/{tripId}")]
+    public async Task<IActionResult> AssighnClientToTrip([FromRoute] int clientId, [FromRoute] int tripId)
+    {
+        try
+        {
+            await dbService.RegisterClientToTrip(clientId, tripId);
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return NotFound(e.Message);
+        }
+    }
     
 }

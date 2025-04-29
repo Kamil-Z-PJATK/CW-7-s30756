@@ -11,5 +11,5 @@ public interface IDbService
     public Task<Client> PostClient(ClientCreateDTO client);
     public Task RegisterClientToTrip(int klientId, int tripId);
     public Task DelieteClientsRegistration(int klientId, int tripId);
-    public Task<IEnumerable<ClientGetDTO>> GetClients();
+    // public Task<IEnumerable<ClientGetDTO>> GetClients();
 }

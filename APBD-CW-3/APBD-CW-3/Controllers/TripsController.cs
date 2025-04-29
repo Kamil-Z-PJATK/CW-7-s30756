@@ -9,11 +9,11 @@ namespace APBD_CW_3.Controllers;
 [Route("[controller]")]
 public class TripsController(IDbService dbService):ControllerBase
 {
-   [HttpGet("clients")]
-   public async Task<IActionResult> GetAllClients()
-   {
-      return Ok(await dbService.GetClients());
-   }
+   // [HttpGet("clients")]
+   // public async Task<IActionResult> GetAllClients()
+   // {
+   //    return Ok(await dbService.GetClients());
+   // }
 
    [HttpGet]
    public async Task<IActionResult> GetAllTrips(int id)

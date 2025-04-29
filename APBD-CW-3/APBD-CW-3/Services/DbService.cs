@@ -167,10 +167,24 @@ public class DbService(IConfiguration config): IDbService
            {
                throw new NotFoundException("Client not found");
            }
+           command.Dispose();
+           await using var command3 = new SqlCommand(sql, connection);
+           sql="SELECT t.MaxPeople  from Trip t WHERE t.IdTrip =@tripId";
+           command3.CommandText = sql;
+           command3.Parameters.AddWithValue("@tripId", tripId);
+           var maxPople = Convert.ToInt32(await command3.ExecuteScalarAsync());
            
-           
-           
-            command.Dispose();
+           sql="SELECT COUNT(*) from Client_Trip ct where ct.Trip_IdTrip =@tripId";
+           command3.CommandText = sql;
+           // command3.Parameters.AddWithValue("@trId", tripId);
+           var currPople = Convert.ToInt32(await command3.ExecuteScalarAsync());
+
+           if (currPople+1 > maxPople)
+           {
+               throw new TripOverfillException("Max people for trip has been reached");
+           }
+           command3.Dispose();
+            
          
             
             sql = "INSERT INTO Client_Trip VALUES (@clientId, @tripId, 13, 15)";
@@ -195,30 +209,30 @@ public class DbService(IConfiguration config): IDbService
         throw new NotImplementedException();
     }
 
-    public async Task<IEnumerable<ClientGetDTO>> GetClients()
-    {
-        await using var connection = new SqlConnection(_connectionString);
-        string sql="SELECT * FROM Client";
-        var command = new SqlCommand(sql, connection);
-        await connection.OpenAsync();
-        await using var reader = await command.ExecuteReaderAsync();
-        
-        var result = new List<ClientGetDTO>();
-        while (await reader.ReadAsync())
-        {
-            result.Add(new ClientGetDTO()
-            {
-                IdClient = reader.GetInt32(0),
-                FirstName = reader.GetString(1),
-                LastName = reader.GetString(2),
-                Email = reader.GetString(3),
-                Telephone = reader.GetString(4),
-                Pesel = reader.GetString(5), 
-            });
-        }
-        
-      return result;
-    }
+    // public async Task<IEnumerable<ClientGetDTO>> GetClients()
+    // {
+    //     await using var connection = new SqlConnection(_connectionString);
+    //     string sql="SELECT * FROM Client";
+    //     var command = new SqlCommand(sql, connection);
+    //     await connection.OpenAsync();
+    //     await using var reader = await command.ExecuteReaderAsync();
+    //     
+    //     var result = new List<ClientGetDTO>();
+    //     while (await reader.ReadAsync())
+    //     {
+    //         result.Add(new ClientGetDTO()
+    //         {
+    //             IdClient = reader.GetInt32(0),
+    //             FirstName = reader.GetString(1),
+    //             LastName = reader.GetString(2),
+    //             Email = reader.GetString(3),
+    //             Telephone = reader.GetString(4),
+    //             Pesel = reader.GetString(5), 
+    //         });
+    //     }
+    //     
+    //   return result;
+    // }
     
     
 }

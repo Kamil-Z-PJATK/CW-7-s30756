@@ -47,5 +47,18 @@ public class ClientsController(IDbService dbService):ControllerBase
             return NotFound(e.Message);
         }
     }
+    [HttpDelete("{clientId}/trips/{tripId}")] 
+    public async Task<IActionResult> DeleteClient_Trip([FromRoute] int clientId, [FromRoute] int tripId)
+    {
+        try
+        {
+            await dbService.DelieteClientsRegistration(clientId, tripId);
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return NotFound(e.Message);
+        }
+    }
     
 }

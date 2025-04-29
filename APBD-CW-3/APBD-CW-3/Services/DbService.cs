@@ -204,9 +204,36 @@ public class DbService(IConfiguration config): IDbService
         }
     }
 
-    public Task DelieteClientsRegistration(int klientId, int tripId)
+    public async Task DelieteClientsRegistration(int klientId, int tripId)
     {
-        throw new NotImplementedException();
+        await using (var connection = new SqlConnection(_connectionString))
+        {
+            string sql = "SELECT COUNT(*) FROM Client_Trip ct WHERE ct.Client_IdClient = @klientID AND ct.Trip_IdTrip = @tripId";
+            await using var command = new SqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@klientId", klientId);
+            command.Parameters.AddWithValue("@tripId", tripId);
+            connection.Open();
+            int ifExists = Convert.ToInt32(await command.ExecuteScalarAsync());
+            if (ifExists == 0)
+            {
+                throw new NotFoundException("Registration doens't exist");
+            }
+            command.Dispose();
+
+            sql = "DELETE FROM Client_Trip  WHERE Client_IdClient =@klientID AND Trip_IdTrip =@tripId";
+            await using var command2 = new SqlCommand(sql, connection);
+            command2.Parameters.AddWithValue("@klientId", klientId);
+            command2.Parameters.AddWithValue("@tripId", tripId);
+            var rowsAffected = await command2.ExecuteNonQueryAsync();
+
+            if (rowsAffected ==0)
+            {
+                throw new NotFoundException("Registration doens't exist");
+            }
+            
+            
+        };
+        
     }
 
     // public async Task<IEnumerable<ClientGetDTO>> GetClients()

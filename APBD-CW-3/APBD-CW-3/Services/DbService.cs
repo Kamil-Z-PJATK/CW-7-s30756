@@ -236,30 +236,7 @@ public class DbService(IConfiguration config): IDbService
         
     }
 
-    // public async Task<IEnumerable<ClientGetDTO>> GetClients()
-    // {
-    //     await using var connection = new SqlConnection(_connectionString);
-    //     string sql="SELECT * FROM Client";
-    //     var command = new SqlCommand(sql, connection);
-    //     await connection.OpenAsync();
-    //     await using var reader = await command.ExecuteReaderAsync();
-    //     
-    //     var result = new List<ClientGetDTO>();
-    //     while (await reader.ReadAsync())
-    //     {
-    //         result.Add(new ClientGetDTO()
-    //         {
-    //             IdClient = reader.GetInt32(0),
-    //             FirstName = reader.GetString(1),
-    //             LastName = reader.GetString(2),
-    //             Email = reader.GetString(3),
-    //             Telephone = reader.GetString(4),
-    //             Pesel = reader.GetString(5), 
-    //         });
-    //     }
-    //     
-    //   return result;
-    // }
+   
     
     
 }

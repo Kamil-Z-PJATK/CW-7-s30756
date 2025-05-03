@@ -60,8 +60,9 @@ public class DbService(IConfiguration config): IDbService
     {
         List<TripGetDTO> trips = new List<TripGetDTO>();
       await using var connection = new SqlConnection(_connectionString);
-      string sql = "SELECT IdClient from Client c ";
+      string sql = "SELECT IdClient from Client c WHERE IDClient = @IdClient";
       await using var command = new SqlCommand(sql, connection);
+      command.Parameters.AddWithValue("@IdClient", klientId);
       await connection.OpenAsync();
       var reader = await command.ExecuteReaderAsync();
       bool czyIstnieje = false;
